@@ -1,0 +1,224 @@
+IndexTTS-Rust/ (Complete Directory Structure)
+│
+├── indextts/                                    # Main Python package (194 files)
+│   │
+│   ├── __init__.py                              # Package initialization
+│   ├── cli.py                                   # Command-line interface (64 lines)
+│   ├── infer.py                                 # Original inference (v1) - 690 lines
+│   ├── infer_v2.py                              # Main inference v2 - 739 lines ⭐⭐⭐
+│   │
+│   ├── gpt/                                     # GPT-based TTS model (9 files, 16,953 lines)
+│   │   ├── __init__.py
+│   │   ├── model.py                             # Original UnifiedVoice (713L)
+│   │   ├── model_v2.py                          # UnifiedVoice v2 ⭐⭐⭐ (747L)
+│   │   ├── conformer_encoder.py                 # Conformer encoder ⭐⭐ (520L)
+│   │   ├── perceiver.py                         # Perceiver resampler (317L)
+│   │   ├── conformer_encoder.py                 # Conformer components
+│   │   ├── transformers_gpt2.py                 # GPT2 implementation (1,878L)
+│   │   ├── transformers_generation_utils.py     # Generation utilities (4,747L)
+│   │   ├── transformers_beam_search.py          # Beam search (1,013L)
+│   │   └── transformers_modeling_utils.py       # Model utilities (5,525L)
+│   │
+│   ├── BigVGAN/                                 # Neural Vocoder (6+ files, ~1000+ lines)
+│   │   ├── __init__.py
+│   │   ├── models.py                            # BigVGAN architecture ⭐⭐⭐
+│   │   ├── ECAPA_TDNN.py                        # Speaker encoder
+│   │   ├── activations.py                       # Snake, SnakeBeta activations
+│   │   ├── utils.py                             # Helper functions
+│   │   │
+│   │   ├── alias_free_activation/               # CUDA kernel variants
+│   │   │   ├── cuda/
+│   │   │   │   ├── activation1d.py              # CUDA kernel loader
+│   │   │   │   └── load.py
+│   │   │   └── torch/
+│   │   │       ├── act.py                       # PyTorch activation
+│   │   │       ├── filter.py                    # Anti-aliasing filter
+│   │   │       └── resample.py                  # Resampling
+│   │   │
+│   │   ├── alias_free_torch/                    # PyTorch-only fallback
+│   │   │   ├── act.py
+│   │   │   ├── filter.py
+│   │   │   └── resample.py
+│   │   │
+│   │   └── nnet/                                # Network modules
+│   │       ├── linear.py
+│   │       ├── normalization.py
+│   │       └── CNN.py
+│   │
+│   ├── s2mel/                                   # Semantic-to-Mel Models (~500+ lines)
+│   │   ├── modules/                             # Core modules (10+ files)
+│   │   │   ├── audio.py                         # Mel-spectrogram computation ⭐
+│   │   │   ├── commons.py                       # Common utilities (21KB)
+│   │   │   ├── layers.py                        # NN layers (13KB)
+│   │   │   ├── length_regulator.py              # Duration modeling
+│   │   │   ├── flow_matching.py                 # Continuous flow matching
+│   │   │   ├── diffusion_transformer.py         # Diffusion model
+│   │   │   ├── rmvpe.py                         # Pitch extraction (22KB)
+│   │   │   ├── quantize.py                      # Quantization
+│   │   │   ├── encodec.py                       # EnCodec codec
+│   │   │   ├── wavenet.py                       # WaveNet implementation
+│   │   │   │
+│   │   │   ├── bigvgan/                         # BigVGAN vocoder
+│   │   │   │   ├── modules.py
+│   │   │   │   ├── config.json
+│   │   │   │   ├── bigvgan.py
+│   │   │   │   ├── alias_free_activation/      # Variants
+│   │   │   │   └── models.py
+│   │   │   │
+│   │   │   ├── vocos/                           # Vocos codec
+│   │   │   ├── hifigan/                         # HiFiGAN vocoder
+│   │   │   ├── openvoice/                       # OpenVoice components (11 files)
+│   │   │   ├── campplus/                        # CAMPPlus speaker encoder
+│   │   │   │   └── DTDNN.py                     # DTDNN architecture
+│   │   │   └── gpt_fast/                        # Fast GPT inference
+│   │   │
+│   │   ├── dac/                                 # DAC codec
+│   │   │   ├── model/
+│   │   │   ├── nn/
+│   │   │   └── utils/
+│   │   │
+│   │   └── (other s2mel implementations)
+│   │
+│   ├── utils/                                   # Text & Feature Utils (12+ files, ~500L)
+│   │   ├── __init__.py
+│   │   ├── front.py                             # TextNormalizer, TextTokenizer ⭐⭐⭐ (700L)
+│   │   ├── maskgct_utils.py                     # Semantic codec builders (250L)
+│   │   ├── arch_util.py                         # AttentionBlock, utilities
+│   │   ├── checkpoint.py                        # Model loading
+│   │   ├── xtransformers.py                     # Transformer utils (1,600L)
+│   │   ├── feature_extractors.py                # MelSpectrogramFeatures
+│   │   ├── common.py                            # Common functions
+│   │   ├── text_utils.py                        # Text utilities
+│   │   ├── typical_sampling.py                  # TypicalLogitsWarper sampling
+│   │   ├── utils.py                             # General utils
+│   │   ├── webui_utils.py                       # Web UI helpers
+│   │   ├── tagger_cache/                        # Text normalization cache
+│   │   │
+│   │   └── maskgct/                             # MaskGCT codec (100+ files, 10KB+)
+│   │       └── models/
+│   │           ├── codec/                       # Multiple codec implementations
+│   │           │   ├── amphion_codec/           # Amphion codec
+│   │           │   │   ├── codec.py
+│   │           │   │   ├── vocos.py
+│   │           │   │   └── quantize/            # Quantization
+│   │           │   │       ├── vector_quantize.py
+│   │           │   │       ├── residual_vq.py
+│   │           │   │       ├── factorized_vector_quantize.py
+│   │           │   │       └── lookup_free_quantize.py
+│   │           │   │
+│   │           │   ├── facodec/                 # FACodec variant
+│   │           │   │   ├── facodec_inference.py
+│   │           │   │   ├── modules/
+│   │           │   │   │   ├── commons.py
+│   │           │   │   │   ├── attentions.py
+│   │           │   │   │   ├── layers.py
+│   │           │   │   │   ├── quantize.py
+│   │           │   │   │   ├── wavenet.py
+│   │           │   │   │   ├── style_encoder.py
+│   │           │   │   │   ├── gradient_reversal.py
+│   │           │   │   │   └── JDC/ (pitch detection)
+│   │           │   │   └── alias_free_torch/    # Anti-aliasing
+│   │           │   │
+│   │           │   ├── speechtokenizer/         # Speech Tokenizer codec
+│   │           │   │   ├── model.py
+│   │           │   │   └── modules/
+│   │           │   │       ├── seanet.py
+│   │           │   │       ├── lstm.py
+│   │           │   │       ├── norm.py
+│   │           │   │       ├── conv.py
+│   │           │   │       └── quantization/
+│   │           │   │
+│   │           │   ├── ns3_codec/                # NS3 codec variant
+│   │           │   ├── vevo/                     # VEVo codec
+│   │           │   ├── kmeans/                   # KMeans codec
+│   │           │   ├── melvqgan/                 # MelVQ-GAN codec
+│   │           │   │
+│   │           │   ├── codec_inference.py
+│   │           │   ├── codec_sampler.py
+│   │           │   ├── codec_trainer.py
+│   │           │   └── codec_dataset.py
+│   │           │
+│   │           └── tts/
+│   │               └── maskgct/
+│   │                   ├── maskgct_s2a.py        # Semantic-to-acoustic
+│   │                   └── ckpt/
+│   │
+│   └── vqvae/                                   # Vector Quantized VAE
+│       ├── xtts_dvae.py                         # Discrete VAE (currently disabled)
+│       └── (other VAE components)
+│
+├── examples/                                    # Sample Data & Test Cases
+│   ├── cases.jsonl                              # Example test cases
+│   ├── voice_*.wav                              # Sample voice prompts (12 files)
+│   ├── emo_*.wav                                # Emotion reference samples (2 files)
+│   └── sample_prompt.wav                        # Default prompt (implied)
+│
+├── tests/                                       # Test Suite
+│   ├── regression_test.py                       # Main regression tests ⭐
+│   └── padding_test.py                          # Padding/batch tests
+│
+├── tools/                                       # Utility Scripts & i18n
+│   ├── download_files.py                        # Model downloading from HF
+│   └── i18n/                                    # Internationalization
+│       ├── i18n.py                              # Translation system
+│       ├── scan_i18n.py                         # i18n scanner
+│       └── locale/
+│           ├── en_US.json                       # English translations
+│           └── zh_CN.json                       # Chinese translations
+│
+├── archive/                                     # Historical Docs
+│   └── README_INDEXTTS_1_5.md                   # IndexTTS 1.5 documentation
+│
+├── webui.py                                     # Gradio Web UI ⭐⭐⭐ (18KB)
+├── cli.py                                       # Command-line interface
+├── requirements.txt                             # Python dependencies
+├── MANIFEST.in                                  # Package manifest
+├── .gitignore                                   # Git ignore rules
+├── .gitattributes                               # Git attributes
+└── LICENSE                                      # Apache 2.0 License
+
+═══════════════════════════════════════════════════════════════════════════════
+KEY FILES BY IMPORTANCE:
+═══════════════════════════════════════════════════════════════════════════════
+
+⭐⭐⭐ CRITICAL (Core Logic - MUST Convert First)
+  1. indextts/infer_v2.py              - Main inference pipeline (739L)
+  2. indextts/gpt/model_v2.py          - UnifiedVoice GPT model (747L)
+  3. indextts/utils/front.py           - Text processing (700L)
+  4. indextts/BigVGAN/models.py        - Vocoder (1000+L)
+  5. indextts/s2mel/modules/audio.py   - Mel-spectrogram (83L, critical DSP)
+
+⭐⭐ HIGH PRIORITY (Major Components)
+  1. indextts/gpt/conformer_encoder.py - Conformer blocks (520L)
+  2. indextts/gpt/perceiver.py         - Perceiver attention (317L)
+  3. indextts/utils/maskgct_utils.py   - Codec builders (250L)
+  4. indextts/s2mel/modules/commons.py - Common utilities (21KB)
+
+⭐ MEDIUM PRIORITY (Utilities & Optimization)
+  1. indextts/utils/xtransformers.py   - Transformer utils (1,600L)
+  2. indextts/BigVGAN/activations.py   - Activation functions
+  3. indextts/s2mel/modules/rmvpe.py   - Pitch extraction (22KB)
+
+OPTIONAL (Web UI, Tools)
+  1. webui.py                          - Gradio interface
+  2. tools/download_files.py           - Model downloading
+
+═══════════════════════════════════════════════════════════════════════════════
+TOTAL STATISTICS:
+═══════════════════════════════════════════════════════════════════════════════
+Total Python Files:        194
+Total Lines of Code:       ~25,000+
+GPT Module:                16,953 lines
+MaskGCT Codecs:            ~10,000+ lines
+S2Mel Models:              ~2,000+ lines
+BigVGAN:                   ~1,000+ lines
+Utils:                     ~500 lines
+Tests:                     ~100 lines
+
+Models Supported:          6 major HuggingFace models
+Languages:                 Chinese (full), English (full), Mixed
+Emotion Dimensions:        8-dimensional emotion control
+Audio Sample Rate:         22,050 Hz (primary)
+Max Text Tokens:           120
+Max Mel Tokens:            250
+Mel Spectrogram Bins:      80

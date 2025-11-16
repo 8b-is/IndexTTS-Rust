@@ -1,0 +1,513 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║              DETAILED SOURCE FILE LISTING BY CATEGORY                          ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+MAIN INFERENCE PIPELINE FILES
+═════════════════════════════════════════════════════════════════════════════════
+
+/home/user/IndexTTS-Rust/indextts/infer_v2.py (739 LINES) ⭐⭐⭐ CRITICAL
+├─ Purpose: Main TTS inference class (IndexTTS2)
+├─ Key Classes:
+│  ├─ QwenEmotion (emotion text-to-vector conversion)
+│  ├─ IndexTTS2 (main inference class)
+│  └─ Helper functions for emotion/audio processing
+├─ Key Methods:
+│  ├─ __init__() - Initialize all models and codecs
+│  ├─ infer() - Single text generation with emotion control
+│  ├─ infer_fast() - Parallel segment generation
+│  ├─ get_emb() - Extract semantic embeddings
+│  ├─ remove_long_silence() - Silence token removal
+│  ├─ insert_interval_silence() - Silence insertion
+│  └─ Cache management for repeated generation
+├─ Models Loaded:
+│  ├─ UnifiedVoice (GPT model for mel token generation)
+│  ├─ W2V-BERT (semantic feature extraction)
+│  ├─ RepCodec (semantic codec)
+│  ├─ S2Mel model (semantic-to-mel conversion)
+│  ├─ CAMPPlus (speaker embedding)
+│  ├─ BigVGAN vocoder
+│  ├─ Qwen-based emotion model
+│  └─ Emotion/speaker matrices
+└─ External Dependencies: torch, transformers, librosa, safetensors
+
+/home/user/IndexTTS-Rust/webui.py (18KB) ⭐⭐⭐ WEB INTERFACE
+├─ Purpose: Gradio-based web UI for IndexTTS
+├─ Key Components:
+│  ├─ Model initialization (IndexTTS2 instance)
+│  ├─ Language selection (Chinese/English)
+│  ├─ Emotion control modes (4 modes)
+│  ├─ Example case loading from cases.jsonl
+│  ├─ Progress bar integration
+│  └─ Output management
+├─ Features:
+│  ├─ Real-time inference
+│  ├─ Multiple emotion control methods
+│  ├─ Batch processing
+│  ├─ Task caching
+│  ├─ i18n support
+│  └─ Pre-loaded example cases
+└─ Web Framework: Gradio 5.34.1
+
+/home/user/IndexTTS-Rust/indextts/cli.py (64 LINES)
+├─ Purpose: Command-line interface
+├─ Usage: python -m indextts.cli <text> -v <voice.wav> -o <output.wav> [options]
+├─ Arguments:
+│  ├─ text: Text to synthesize
+│  ├─ -v/--voice: Voice reference audio
+│  ├─ -o/--output_path: Output file path
+│  ├─ -c/--config: Config file path
+│  ├─ --model_dir: Model directory
+│  ├─ --fp16: Use FP16 precision
+│  ├─ -d/--device: Device (cpu/cuda/mps/xpu)
+│  └─ -f/--force: Force overwrite
+└─ Uses: IndexTTS (v1 model)
+
+TEXT PROCESSING & NORMALIZATION FILES
+═════════════════════════════════════════════════════════════════════════════════
+
+/home/user/IndexTTS-Rust/indextts/utils/front.py (700 LINES) ⭐⭐⭐ CRITICAL
+├─ Purpose: Text normalization and tokenization
+├─ Key Classes:
+│  ├─ TextNormalizer (700+ lines)
+│  │  ├─ Pattern Definitions:
+│  │  │  ├─ PINYIN_TONE_PATTERN (regex for pinyin with tones 1-5)
+│  │  │  ├─ NAME_PATTERN (regex for Chinese names)
+│  │  │  └─ ENGLISH_CONTRACTION_PATTERN (regex for 's contractions)
+│  │  ├─ Methods:
+│  │  │  ├─ normalize() - Main normalization
+│  │  │  ├─ use_chinese() - Language detection
+│  │  │  ├─ save_pinyin_tones() - Extract pinyin with tones
+│  │  │  ├─ restore_pinyin_tones() - Restore pinyin
+│  │  │  ├─ save_names() - Extract names
+│  │  │  ├─ restore_names() - Restore names
+│  │  │  ├─ correct_pinyin() - Phoneme correction (jqx→v)
+│  │  │  └─ char_rep_map - Character replacement dictionary
+│  │  └─ Normalizers:
+│  │     ├─ zh_normalizer (Chinese) - Uses WeTextProcessing/wetext
+│  │     └─ en_normalizer (English) - Uses tn library
+│  │
+│  └─ TextTokenizer (200+ lines)
+│     ├─ Methods:
+│     │  ├─ encode() - Text to token IDs
+│     │  ├─ decode() - Token IDs to text
+│     │  ├─ convert_tokens_to_ids()
+│     │  ├─ convert_ids_to_tokens()
+│     │  └─ Vocab management
+│     ├─ Special Tokens:
+│     │  ├─ BOS: "<s>" (ID 0)
+│     │  ├─ EOS: "</s>" (ID 1)
+│     │  └─ UNK: "<unk>"
+│     └─ Tokenizer: SentencePiece (BPE-based)
+├─ Language Support:
+│  ├─ Chinese (simplified & traditional)
+│  ├─ English
+│  └─ Mixed Chinese-English
+└─ Critical Pattern Matching:
+   ├─ Pinyin tone detection
+   ├─ Name entity detection
+   ├─ Email matching
+   ├─ Character replacement
+   └─ Punctuation handling
+
+GPT MODEL ARCHITECTURE FILES
+═════════════════════════════════════════════════════════════════════════════════
+
+/home/user/IndexTTS-Rust/indextts/gpt/model_v2.py (747 LINES) ⭐⭐⭐ CRITICAL
+├─ Purpose: UnifiedVoice GPT-based TTS model
+├─ Key Classes:
+│  ├─ UnifiedVoice (700+ lines)
+│  │  ├─ Architecture:
+│  │  │  ├─ Input Embeddings: Text (256 vocab), Mel (8194 vocab)
+│  │  │  ├─ Position Embeddings: Learned embeddings for mel/text
+│  │  │  ├─ GPT Transformer: Configurable layers/heads
+│  │  │  ├─ Conditioning Encoder: Conformer or Perceiver-based
+│  │  │  ├─ Emotion Conditioning: Separate conformer + perceiver
+│  │  │  └─ Output Heads: Text prediction, Mel prediction
+│  │  │
+│  │  ├─ Parameters:
+│  │  │  ├─ layers: 8 (transformer depth)
+│  │  │  ├─ model_dim: 512 (embedding dimension)
+│  │  │  ├─ heads: 8 (attention heads)
+│  │  │  ├─ max_text_tokens: 120
+│  │  │  ├─ max_mel_tokens: 250
+│  │  │  ├─ number_mel_codes: 8194
+│  │  │  ├─ condition_type: "conformer_perceiver" or "conformer_encoder"
+│  │  │  └─ Various activation functions
+│  │  │
+│  │  ├─ Key Methods:
+│  │  │  ├─ forward() - Forward pass
+│  │  │  ├─ post_init_gpt2_config() - Initialize for inference
+│  │  │  ├─ generate_mel() - Mel token generation
+│  │  │  ├─ forward_with_cond_scale() - With classifier-free guidance
+│  │  │  └─ Cache management
+│  │  │
+│  │  └─ Conditioning System:
+│  │     ├─ Speaker conditioning via mel spectrogram
+│  │     ├─ Conformer encoder for speaker features
+│  │     ├─ Perceiver for attention pooling
+│  │     ├─ Emotion conditioning (separate pathway)
+│  │     └─ Emotion vector support (8-dimensional)
+│  │
+│  ├─ ResBlock (40+ lines)
+│  │  ├─ Conv1d layers with GroupNorm
+│  │  └─ ReLU activation with residual connection
+│  │
+│  ├─ GPT2InferenceModel (200+ lines)
+│  │  ├─ Inference wrapper for GPT2
+│  │  ├─ KV cache support
+│  │  ├─ Model parallelism support
+│  │  └─ Token-by-token generation
+│  │
+│  ├─ ConditioningEncoder (30 lines)
+│  │  ├─ Conv1d initialization
+│  │  ├─ Attention blocks
+│  │  └─ Optional mean pooling
+│  │
+│  ├─ MelEncoder (30 lines)
+│  │  ├─ Conv1d layers
+│  │  ├─ ResBlocks
+│  │  └─ 4x reduction
+│  │
+│  ├─ LearnedPositionEmbeddings (15 lines)
+│  │  └─ Learnable positional embeddings
+│  │
+│  └─ build_hf_gpt_transformer() (20 lines)
+│     └─ Builds HuggingFace GPT2 with custom embeddings
+│
+├─ External Dependencies: torch, transformers, indextts.gpt modules
+└─ Critical Inference Parameters:
+   ├─ Temperature control for generation
+   ├─ Top-k/top-p sampling
+   ├─ Classifier-free guidance scale
+   └─ Generation length limits
+
+/home/user/IndexTTS-Rust/indextts/gpt/conformer_encoder.py (520 LINES) ⭐⭐
+├─ Purpose: Conformer-based speaker conditioning encoder
+├─ Key Classes:
+│  ├─ ConformerEncoder (main)
+│  │  ├─ Modules:
+│  │  │  ├─ Subsampling layer (Conv2d)
+│  │  │  ├─ Positional encoding
+│  │  │  ├─ Conformer blocks
+│  │  │  ├─ Layer normalization
+│  │  │  └─ Optional projection layer
+│  │  │
+│  │  ├─ Configuration Parameters:
+│  │  │  ├─ input_size: 1024 (mel spectrogram bins)
+│  │  │  ├─ output_size: depends on config
+│  │  │  ├─ linear_units: hidden dim for FFN
+│  │  │  ├─ attention_heads: 8
+│  │  │  ├─ num_blocks: 4
+│  │  │  └─ input_layer: "linear" or "conv2d"
+│  │  │
+│  │  └─ Architecture: Conv → Pos Enc → [Conformer Block] * N → LayerNorm
+│  │
+│  ├─ ConformerBlock (80+ lines)
+│  │  ├─ Residual connections
+│  │  ├─ FFN → Attention → Conv → FFN structure
+│  │  ├─ Feed-forward network (2-layer with dropout)
+│  │  ├─ Multi-head self-attention
+│  │  ├─ Convolution module (depthwise)
+│  │  └─ Layer normalization
+│  │
+│  ├─ ConvolutionModule (50 lines)
+│  │  ├─ Pointwise Conv 1x1
+│  │  ├─ Depthwise Conv with kernel_size (e.g., 15)
+│  │  ├─ Batch normalization or layer normalization
+│  │  ├─ Activation (ReLU/SiLU)
+│  │  └─ Projection
+│  │
+│  ├─ PositionwiseFeedForward (15 lines)
+│  │  ├─ Dense layer (idim → hidden)
+│  │  ├─ Activation (ReLU)
+│  │  ├─ Dropout
+│  │  └─ Dense layer (hidden → idim)
+│  │
+│  └─ MultiHeadedAttention (custom)
+│     ├─ Scaled dot-product attention
+│     ├─ Multiple heads
+│     └─ Optional relative position bias
+│
+├─ External Dependencies: torch, custom conformer modules
+└─ Use Case: Processing mel spectrogram to extract speaker features
+
+/home/user/IndexTTS-Rust/indextts/gpt/perceiver.py (317 LINES) ⭐⭐
+├─ Purpose: Perceiver resampler for attention pooling
+├─ Key Classes:
+│  ├─ PerceiverResampler (250+ lines)
+│  │  ├─ Architecture:
+│  │  │  ├─ Learnable latent queries
+│  │  │  ├─ Cross-attention layers
+│  │  │  ├─ Feed-forward networks
+│  │  │  └─ Layer normalization
+│  │  │
+│  │  ├─ Parameters:
+│  │  │  ├─ dim: 512 (embedding dimension)
+│  │  │  ├─ dim_context: 512 (context dimension)
+│  │  │  ├─ num_latents: 32 (number of latent queries)
+│  │  │  ├─ num_latent_channels: 64
+│  │  │  ├─ num_layers: 6
+│  │  │  ├─ ff_mult: 4 (FFN expansion)
+│  │  │  └─ heads: 8
+│  │  │
+│  │  ├─ Key Methods:
+│  │  │  ├─ forward() - Attend and pool
+│  │  │  └─ _cross_attend_block() - Single cross-attention layer
+│  │  │
+│  │  └─ Cross-Attention Mechanism:
+│  │     ├─ Queries: Learnable latents
+│  │     ├─ Keys/Values: Input context
+│  │     ├─ Output: Pooled features (num_latents × dim)
+│  │     └─ FFN projection for dimension mixing
+│  │
+│  └─ FeedForward (15 lines)
+│     ├─ Dense (dim → hidden)
+│     ├─ GELU activation
+│     └─ Dense (hidden → dim)
+│
+├─ External Dependencies: torch, einsum operations
+└─ Use Case: Pool conditioning encoder output to fixed-size representation
+
+VOCODER & AUDIO SYNTHESIS FILES
+═════════════════════════════════════════════════════════════════════════════════
+
+/home/user/IndexTTS-Rust/indextts/BigVGAN/models.py (1000+ LINES) ⭐⭐⭐
+├─ Purpose: BigVGAN neural vocoder for mel-to-audio conversion
+├─ Key Classes:
+│  ├─ BigVGAN (400+ lines)
+│  │  ├─ Architecture:
+│  │  │  ├─ Initial Conv1d (80 mel bins → 192 channels)
+│  │  │  ├─ Upsampling layers (transposed conv)
+│  │  │  ├─ AMP blocks (anti-aliased multi-period)
+│  │  │  ├─ Final Conv1d (channels → 1 waveform)
+│  │  │  └─ Tanh activation for output
+│  │  │
+│  │  ├─ Upsampling: 4x → 8x → 8x → 4x (256x total)
+│  │  │  ├─ Maps from 22050 Hz mel frames to audio samples
+│  │  │  ├─ Kernel sizes: [16, 16, 4, 4]
+│  │  │  └─ Padding: [6, 6, 2, 2]
+│  │  │
+│  │  ├─ Parameters:
+│  │  │  ├─ num_mels: 80
+│  │  │  ├─ num_freq: 513
+│  │  │  ├─ num_mels: 80
+│  │  │  ├─ n_fft: 1024
+│  │  │  ├─ hop_size: 256
+│  │  │  ├─ win_size: 1024
+│  │  │  ├─ sampling_rate: 22050
+│  │  │  ├─ freq_min: 0
+│  │  │  ├─ freq_max: None
+│  │  │  └─ use_cuda_kernel: bool
+│  │  │
+│  │  ├─ Key Methods:
+│  │  │  ├─ forward() - Mel → audio waveform
+│  │  │  ├─ from_pretrained() - Load from HuggingFace
+│  │  │  ├─ remove_weight_norm() - Remove spectral normalization
+│  │  │  └─ eval() - Set to evaluation mode
+│  │  │
+│  │  └─ Special Features:
+│  │     ├─ Weight normalization for training stability
+│  │     ├─ Spectral normalization option
+│  │     ├─ CUDA kernel support for activation functions
+│  │     ├─ Snake/SnakeBeta activation (periodic)
+│  │     └─ Anti-aliasing filters for high-quality upsampling
+│  │
+│  ├─ AMPBlock1 (50 lines)
+│  │  ├─ Architecture: Conv1d × 2 with activations
+│  │  ├─ Multiple dilation patterns [1, 3, 5]
+│  │  ├─ Residual connections
+│  │  ├─ Activation1d wrapper for anti-aliasing
+│  │  └─ Weight normalization
+│  │
+│  ├─ AMPBlock2 (40 lines)
+│  │  ├─ Similar to AMPBlock1 but simpler
+│  │  ├─ Dilation patterns [1, 3]
+│  │  └─ Residual connections
+│  │
+│  ├─ Activation1d (custom, from alias_free_activation/)
+│  │  ├─ Applies activation function (Snake/SnakeBeta)
+│  │  ├─ Optional anti-aliasing filter
+│  │  └─ Optional CUDA kernel for efficiency
+│  │
+│  ├─ Snake Activation (from activations.py)
+│  │  ├─ Formula: x + (1/alpha) * sin²(alpha * x)
+│  │  ├─ Periodic nonlinearity
+│  │  └─ Learnable alpha parameter
+│  │
+│  └─ SnakeBeta Activation (from activations.py)
+│     ├─ More complex periodic activation
+│     └─ Improved harmonic modeling
+│
+├─ External Dependencies: torch, scipy, librosa
+└─ Model Size: ~100 MB (pretrained weights)
+
+/home/user/IndexTTS-Rust/indextts/s2mel/modules/audio.py (83 LINES)
+├─ Purpose: Mel-spectrogram computation (DSP)
+├─ Key Functions:
+│  ├─ load_wav() - Load WAV file with scipy
+│  ├─ mel_spectrogram() - Compute mel spectrogram
+│  │  ├─ Parameters:
+│  │  │  ├─ y: waveform tensor
+│  │  │  ├─ n_fft: 1024
+│  │  │  ├─ num_mels: 80
+│  │  │  ├─ sampling_rate: 22050
+│  │  │  ├─ hop_size: 256
+│  │  │  ├─ win_size: 1024
+│  │  │  ├─ fmin: 0
+│  │  │  └─ fmax: None or 8000
+│  │  │
+│  │  ├─ Process:
+│  │  │  1. Pad input with reflect padding
+│  │  │  2. Compute STFT (Short-Time Fourier Transform)
+│  │  │  3. Convert to magnitude spectrogram
+│  │  │  4. Apply mel filterbank (librosa)
+│  │  │  5. Apply dynamic range compression (log)
+│  │  │  └─ Output: [1, 80, T] tensor
+│  │  │
+│  │  └─ Caching:
+│  │     ├─ Caches mel filterbank matrices
+│  │     ├─ Caches Hann windows
+│  │     └─ Device-specific caching
+│  │
+│  ├─ dynamic_range_compression() - Log compression
+│  ├─ dynamic_range_decompression() - Inverse
+│  └─ spectral_normalize/denormalize()
+│
+├─ Critical DSP Parameters:
+│  ├─ STFT Window: Hann window
+│  ├─ FFT Size: 1024
+│  ├─ Hop Size: 256 (11.6 ms at 22050 Hz)
+│  ├─ Mel Bins: 80 (perceptual scale)
+│  ├─ Min Freq: 0 Hz
+│  └─ Max Freq: Variable (8000 Hz or Nyquist)
+│
+└─ External Dependencies: torch, librosa, scipy
+
+SEMANTIC CODEC & FEATURE EXTRACTION FILES
+═════════════════════════════════════════════════════════════════════════════════
+
+/home/user/IndexTTS-Rust/indextts/utils/maskgct_utils.py (250 LINES)
+├─ Purpose: Build and manage semantic codecs
+├─ Key Functions:
+│  ├─ build_semantic_model()
+│  │  ├─ Loads: facebook/w2v-bert-2.0 model
+│  │  ├─ Extracts: wav2vec 2.0 BERT embeddings
+│  │  ├─ Returns: model, mean, std (for normalization)
+│  │  └─ Output: 1024-dimensional embeddings
+│  │
+│  ├─ build_semantic_codec()
+│  │  ├─ Creates: RepCodec (residual vector quantization)
+│  │  ├─ Quantizes: Semantic embeddings
+│  │  ├─ Returns: Codec model
+│  │  └─ Output: Discrete tokens
+│  │
+│  ├─ build_s2a_model()
+│  │  ├─ Builds: MaskGCT_S2A (semantic-to-acoustic)
+│  │  └─ Maps: Semantic codes → acoustic codes
+│  │
+│  ├─ build_acoustic_codec()
+│  │  ├─ Encoder: Encodes acoustic features
+│  │  ├─ Decoder: Decodes codes → audio
+│  │  └─ Multiple codec variants
+│  │
+│  └─ Inference_Pipeline (class)
+│     ├─ Combines all codecs
+│     ├─ Methods:
+│     │  ├─ get_emb() - Get semantic embeddings
+│     │  ├─ get_scode() - Quantize to semantic codes
+│     │  ├─ semantic2acoustic() - Convert codes
+│     │  └─ s2a_inference() - Full pipeline
+│     └─ Diffusion-based generation options
+│
+├─ External Dependencies: torch, transformers, huggingface_hub
+└─ Pre-trained Models:
+   ├─ W2V-BERT-2.0: 614M parameters
+   ├─ MaskGCT: From amphion/MaskGCT
+   └─ Various codec checkpoints
+
+CONFIGURATION & UTILITY FILES
+═════════════════════════════════════════════════════════════════════════════════
+
+/home/user/IndexTTS-Rust/indextts/utils/checkpoint.py (50 LINES)
+├─ Purpose: Load model checkpoints
+├─ Key Functions:
+│  ├─ load_checkpoint() - Load weights into model
+│  └─ Device handling (CPU/GPU/XPU/MPS)
+└─ Supported Formats: .pth, .safetensors
+
+/home/user/IndexTTS-Rust/indextts/utils/arch_util.py
+├─ Purpose: Architecture utility modules
+├─ Key Classes:
+│  └─ AttentionBlock - Generic attention layer
+└─ Used in: Conditioning encoder, other modules
+
+/home/user/IndexTTS-Rust/indextts/utils/xtransformers.py (1,600 LINES)
+├─ Purpose: Extended transformer utilities
+├─ Key Components:
+│  ├─ Advanced attention mechanisms
+│  ├─ Relative position bias
+│  ├─ Cross-attention patterns
+│  └─ Various position encoding schemes
+└─ Used in: GPT model, encoders
+
+TESTING FILES
+═════════════════════════════════════════════════════════════════════════════════
+
+/home/user/IndexTTS-Rust/tests/regression_test.py
+├─ Test Cases:
+│  ├─ Chinese text with pinyin tones (晕 XUAN4)
+│  ├─ English text
+│  ├─ Mixed Chinese-English
+│  ├─ Long-form text with multiple sentences
+│  ├─ Named entities (Joseph Gordon-Levitt)
+│  ├─ Chinese names (约瑟夫·高登-莱维特)
+│  └─ Extended passages for robustness
+├─ Inference Modes:
+│  ├─ Single inference (infer)
+│  └─ Fast inference (infer_fast)
+└─ Output: WAV files in outputs/ directory
+
+/home/user/IndexTTS-Rust/tests/padding_test.py
+├─ Test Scenarios:
+│  ├─ Variable length inputs
+│  ├─ Batch processing
+│  ├─ Edge cases
+│  └─ Padding handling
+└─ Purpose: Ensure robust padding mechanics
+
+═════════════════════════════════════════════════════════════════════════════════
+
+KEY ALGORITHMS SUMMARY:
+
+1. TEXT PROCESSING:
+   - Regex-based pattern matching for pinyin/names
+   - Character-level CJK tokenization
+   - SentencePiece BPE encoding
+   - Language detection (Chinese vs English)
+
+2. FEATURE EXTRACTION:
+   - W2V-BERT semantic embeddings (1024-dim)
+   - RepCodec quantization
+   - Mel-spectrogram (STFT-based, 80-dim)
+   - CAMPPlus speaker embeddings (192-dim)
+
+3. SEQUENCE GENERATION:
+   - GPT-based autoregressive generation
+   - Conformer speaker conditioning
+   - Perceiver pooling for attention
+   - Classifier-free guidance (optional)
+   - Temperature/top-k/top-p sampling
+
+4. AUDIO SYNTHESIS:
+   - Transposed convolution upsampling (256x)
+   - Anti-aliased activation functions
+   - Residual connections
+   - Weight/spectral normalization
+
+5. EMOTION CONTROL:
+   - 8-dimensional emotion vectors
+   - Text-based emotion detection (via Qwen)
+   - Audio-based emotion extraction
+   - Emotion matrix interpolation
+
+═════════════════════════════════════════════════════════════════════════════════
