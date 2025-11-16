@@ -136,9 +136,12 @@ impl EmotionEncoder {
             .map_err(|e| Error::ModelLoading(format!("Missing emotion_matrix: {}", e)))?;
 
         let shape = tensor.shape();
-        let data: Vec<f32> = tensor.data().chunks(4).map(|b| {
+        let mut data: Vec<f32> = tensor.data().chunks_exact(4).map(|b| {
             f32::from_le_bytes([b[0], b[1], b[2], b[3]])
         }).collect();
+        if !tensor.data().chunks_exact(4).remainder().is_empty() {
+            return Err(Error::ModelLoading("Tensor data length is not a multiple of 4".to_string()));
+        }
 
         let emotion_matrix = Array2::from_shape_vec((shape[0], shape[1]), data)
             .map_err(|e| Error::ModelLoading(format!("Shape mismatch: {}", e)))?;
