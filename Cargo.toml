@@ -1,0 +1,88 @@
+[package]
+name = "indextts"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance Text-to-Speech engine in pure Rust - converted from IndexTTS Python"
+authors = ["IndexTTS Team"]
+license = "MIT"
+keywords = ["tts", "speech-synthesis", "audio", "ml", "deep-learning"]
+categories = ["multimedia::audio", "science"]
+
+[[bin]]
+name = "indextts"
+path = "src/main.rs"
+
+[lib]
+name = "indextts"
+path = "src/lib.rs"
+
+[dependencies]
+# Core ML/Inference
+ort = { version = "2.0.0-rc.4", features = ["load-dynamic"] }
+safetensors = "0.4"
+ndarray = { version = "0.15", features = ["rayon"] }
+
+# Audio Processing
+hound = "3.5"
+dasp_signal = "0.11"
+dasp_sample = "0.11"
+rustfft = "6.2"
+realfft = "3.3"
+rubato = "0.15"
+
+# Text Processing
+tokenizers = "0.19"
+unicode-segmentation = "1.11"
+regex = "1.10"
+lazy_static = "1.5"
+jieba-rs = "0.7"
+
+# CLI & Configuration
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+toml = "0.8"
+config = "0.14"
+
+# Async & Parallelism
+rayon = "1.10"
+tokio = { version = "1.38", features = ["full"] }
+
+# Utilities
+anyhow = "1.0"
+thiserror = "1.0"
+log = "0.4"
+env_logger = "0.11"
+indicatif = "0.17"
+bytemuck = { version = "1.16", features = ["derive"] }
+num-complex = "0.4"
+num-traits = "0.2"
+rand = "0.8"
+num_cpus = "1.16"
+
+# HTTP/Download
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+sha2 = "0.10"
+hex = "0.4"
+
+[dev-dependencies]
+criterion = "0.5"
+tempfile = "3.10"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = 1
+
+[[bench]]
+name = "mel_spectrogram"
+harness = false
+
+[[bench]]
+name = "inference"
+harness = false
