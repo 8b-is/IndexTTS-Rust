@@ -82,7 +82,6 @@ lazy_static! {
         m.insert("wu", ("", "u"));
         m.insert("liu", ("l", "iu"));
         m.insert("qi", ("q", "i"));
-        m.insert("ba", ("b", "a"));
         m.insert("jiu", ("j", "iu"));
         m.insert("shi", ("sh", "i"));
         m
