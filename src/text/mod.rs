@@ -69,7 +69,7 @@ pub fn contains_chinese(text: &str) -> bool {
 
 /// Check if text contains only ASCII
 pub fn is_ascii_only(text: &str) -> bool {
-    text.chars().all(|c| c.is_ascii())
+    text.is_ascii()
 }
 
 /// Split text into segments by language

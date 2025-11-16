@@ -3,10 +3,9 @@
 use crate::{
     audio::{load_audio, save_audio, AudioConfig, AudioData},
     config::Config,
-    model::{EmotionEncoder, GptConfig, SamplingStrategy, SemanticEncoder, SpeakerEncoder},
+    model::{EmotionEncoder, SamplingStrategy, SemanticEncoder, SpeakerEncoder},
     text::{TextNormalizer, TextTokenizer, TokenizerConfig},
-    vocoder::{BigVGAN, BigVGANConfig, Vocoder},
-    Error, Result, SAMPLE_RATE,
+    vocoder::{BigVGAN, BigVGANConfig, Vocoder}, Result,
 };
 use ndarray::Array1;
 use std::path::{Path, PathBuf};

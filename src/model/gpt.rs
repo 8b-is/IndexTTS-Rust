@@ -1,7 +1,7 @@
 //! GPT-based sequence generation model
 
 use crate::{Error, Result};
-use ndarray::{Array, Array1, Array2, Array3, IxDyn};
+use ndarray::{Array, Array1, Array2, IxDyn};
 use std::collections::HashMap;
 use std::path::Path;
 

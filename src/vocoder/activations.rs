@@ -39,7 +39,7 @@ pub fn anti_aliased_snake(x: &[f32], alpha: f32, upsample_factor: usize) -> Vec<
     // Upsample
     let upsampled: Vec<f32> = x
         .iter()
-        .flat_map(|&v| std::iter::repeat(v).take(upsample_factor))
+        .flat_map(|&v| std::iter::repeat_n(v, upsample_factor))
         .collect();
 
     // Apply activation

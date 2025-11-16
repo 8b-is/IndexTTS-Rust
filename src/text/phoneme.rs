@@ -3,7 +3,6 @@
 //! Provides grapheme-to-phoneme (G2P) conversion for English
 //! and Pinyin handling for Chinese
 
-use crate::Result;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 

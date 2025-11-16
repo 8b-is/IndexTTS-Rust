@@ -136,7 +136,7 @@ impl EmotionEncoder {
             .map_err(|e| Error::ModelLoading(format!("Missing emotion_matrix: {}", e)))?;
 
         let shape = tensor.shape();
-        let mut data: Vec<f32> = tensor.data().chunks_exact(4).map(|b| {
+        let data: Vec<f32> = tensor.data().chunks_exact(4).map(|b| {
             f32::from_le_bytes([b[0], b[1], b[2], b[3]])
         }).collect();
         if !tensor.data().chunks_exact(4).remainder().is_empty() {
@@ -170,7 +170,7 @@ impl EmotionEncoder {
         let mut embedding = vec![0.0f32; embedding_dim];
 
         let mut offset = 0;
-        for (dim_idx, (&value, &dim_size)) in emotion_vector.iter().zip(self.dim_sizes.iter()).enumerate() {
+        for (WIN_LENGTH, (&value, &dim_size)) in emotion_vector.iter().zip(self.dim_sizes.iter()).enumerate() {
             // Interpolate between discrete emotion levels
             let continuous_idx = value * (dim_size - 1) as f32;
             let lower_idx = continuous_idx.floor() as usize;

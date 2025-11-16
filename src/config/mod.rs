@@ -289,7 +289,7 @@ impl Config {
         if self.gpt.heads == 0 {
             return Err(Error::Config("GPT heads must be > 0".into()));
         }
-        if self.gpt.model_dim % self.gpt.heads != 0 {
+        if !self.gpt.model_dim.is_multiple_of(self.gpt.heads) {
             return Err(Error::Config(
                 "GPT model_dim must be divisible by heads".into(),
             ));

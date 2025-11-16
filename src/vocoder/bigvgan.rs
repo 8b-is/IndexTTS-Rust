@@ -3,7 +3,7 @@
 //! High-quality neural vocoder for mel-spectrogram to waveform conversion
 
 use crate::{Error, Result};
-use ndarray::{Array, Array2, IxDyn};
+use ndarray::{Array2, IxDyn};
 use std::collections::HashMap;
 use std::path::Path;
 

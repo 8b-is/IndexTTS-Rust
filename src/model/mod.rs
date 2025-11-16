@@ -10,8 +10,6 @@ pub use gpt::{GptModel, GptConfig};
 pub use embedding::{SpeakerEncoder, EmotionEncoder, SemanticEncoder};
 pub use session::{OnnxSession, ModelCache};
 
-use crate::{Error, Result};
-use ndarray::{Array1, Array2, Array3};
 
 /// Sampling strategy for generation
 #[derive(Debug, Clone)]

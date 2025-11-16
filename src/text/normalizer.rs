@@ -1,6 +1,6 @@
 //! Text normalization for TTS
 
-use crate::{Error, Result};
+use crate::Result;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
