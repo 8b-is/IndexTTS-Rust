@@ -15,3 +15,7 @@ build/
 .venv
 checkpoints/*
 __MACOSX
+
+# Rust build artifacts
+/target/
+**/*.rs.bk
