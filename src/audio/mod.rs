@@ -7,9 +7,12 @@ mod io;
 pub mod mel;
 mod resample;
 
-pub use dsp::{apply_preemphasis, dynamic_range_compression, dynamic_range_decompression, normalize_audio, normalize_audio_peak, apply_fade};
+pub use dsp::{
+    apply_fade, apply_preemphasis, dynamic_range_compression, dynamic_range_decompression,
+    normalize_audio, normalize_audio_peak,
+};
 pub use io::{load_audio, save_audio, AudioData};
-pub use mel::{mel_spectrogram, MelFilterbank, mel_to_linear};
+pub use mel::{mel_spectrogram, mel_to_linear, MelFilterbank};
 pub use resample::resample;
 
 use crate::Result;
@@ -48,10 +51,7 @@ impl Default for AudioConfig {
 }
 
 /// Compute mel spectrogram from audio file
-pub fn compute_mel_from_file(
-    path: &str,
-    config: &AudioConfig,
-) -> Result<ndarray::Array2<f32>> {
+pub fn compute_mel_from_file(path: &str, config: &AudioConfig) -> Result<ndarray::Array2<f32>> {
     let audio = load_audio(path, Some(config.sample_rate))?;
     mel_spectrogram(&audio.samples, config)
 }

@@ -8,9 +8,8 @@ mod activations;
 pub use bigvgan::{BigVGAN, BigVGANConfig, create_bigvgan_22k, create_bigvgan_24k};
 pub use activations::{snake_activation, snake_beta_activation, snake_activation_vec};
 
-use crate::{Error, Result};
+use crate::Result;
 use ndarray::Array2;
-use num_complex::Complex;
 
 /// Vocoder trait for mel-to-waveform conversion
 pub trait Vocoder {

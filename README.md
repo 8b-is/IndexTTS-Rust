@@ -39,7 +39,7 @@ Compared to the Python implementation:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/IndexTTS-Rust.git
+git clone https://github.com/8b-is/IndexTTS-Rust.git
 cd IndexTTS-Rust
 
 # Build in release mode (optimized)

@@ -8,9 +8,7 @@ fn bench_mel_spectrogram(c: &mut Criterion) {
 
     // Generate 1 second of audio
     let num_samples = config.sample_rate as usize;
-    let signal: Vec<f32> = (0..num_samples)
-        .map(|i| (i as f32 * 0.01).sin())
-        .collect();
+    let signal: Vec<f32> = (0..num_samples).map(|i| (i as f32 * 0.01).sin()).collect();
 
     c.bench_function("mel_spectrogram_1s", |b| {
         b.iter(|| mel_spectrogram(black_box(&signal), black_box(&config)))
@@ -29,9 +27,7 @@ fn bench_mel_spectrogram(c: &mut Criterion) {
 fn bench_stft(c: &mut Criterion) {
     let config = AudioConfig::default();
     let num_samples = config.sample_rate as usize;
-    let signal: Vec<f32> = (0..num_samples)
-        .map(|i| (i as f32 * 0.01).sin())
-        .collect();
+    let signal: Vec<f32> = (0..num_samples).map(|i| (i as f32 * 0.01).sin()).collect();
 
     c.bench_function("stft_1s", |b| {
         b.iter(|| {

@@ -1,6 +1,5 @@
 //! Digital Signal Processing utilities
 
-use crate::Result;
 
 /// Apply pre-emphasis filter to audio signal
 ///
