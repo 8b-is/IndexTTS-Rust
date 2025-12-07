@@ -1,0 +1,18 @@
+[package]
+name = "marine_salience"
+version = "0.1.0"
+edition = "2021"
+description = "O(1) jitter-based salience detection - Marines are intelligent!"
+authors = ["Hue & Aye <team@8b.is>"]
+license = "MIT"
+keywords = ["audio", "salience", "jitter", "prosody", "tts"]
+
+[dependencies]
+# Core dependencies - intentionally minimal for no_std compatibility
+# Only serde when using std for serialization
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+# no_std compatible core - can run anywhere!
+[features]
+default = ["std"]
+std = ["serde"]

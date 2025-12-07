@@ -27,12 +27,18 @@ pub mod config;
 pub mod error;
 pub mod model;
 pub mod pipeline;
+pub mod quality;
 pub mod text;
 pub mod vocoder;
 
 pub use config::Config;
 pub use error::{Error, Result};
 pub use pipeline::IndexTTS;
+
+// Re-export Marine quality validation
+pub use quality::{
+    ComfortLevel, ConversationAffectSummary, MarineProsodyConditioner, MarineProsodyVector,
+};
 
 /// Library version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

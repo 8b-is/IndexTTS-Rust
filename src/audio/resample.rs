@@ -31,7 +31,7 @@ pub fn resample(audio: &AudioData, target_sr: u32) -> Result<AudioData> {
     let mut input_buffer = vec![vec![0.0f32; input_frames_needed]];
     let mut output_samples = Vec::new();
 
-    let mut pos = 0;
+    let mut pos = 0;    
     while pos < audio.samples.len() {
         // Fill input buffer
         let end = (pos + input_frames_needed).min(audio.samples.len());

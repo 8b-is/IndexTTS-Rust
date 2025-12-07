@@ -4,7 +4,7 @@
 
 mod dsp;
 mod io;
-mod mel;
+pub mod mel;
 mod resample;
 
 pub use dsp::{apply_preemphasis, dynamic_range_compression, dynamic_range_decompression, normalize_audio, normalize_audio_peak, apply_fade};

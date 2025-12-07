@@ -1,0 +1,51 @@
+gpt:
+  layers: 8
+  model_dim: 512
+  heads: 8
+  max_text_tokens: 120
+  max_mel_tokens: 250
+  stop_mel_token: 8193
+  start_text_token: 8192
+  start_mel_token: 8192
+  num_mel_codes: 8194
+  num_text_tokens: 6681
+vocoder:
+  name: bigvgan_v2_22khz_80band_256x
+  checkpoint: null
+  use_fp16: true
+  use_deepspeed: false
+s2mel:
+  checkpoint: models/s2mel.onnx
+  preprocess:
+    sr: 22050
+    n_fft: 1024
+    hop_length: 256
+    win_length: 1024
+    n_mels: 80
+    fmin: 0.0
+    fmax: 8000.0
+dataset:
+  bpe_model: models/bpe.model
+  vocab_size: 6681
+emotions:
+  num_dims: 8
+  num:
+  - 5
+  - 6
+  - 8
+  - 6
+  - 5
+  - 4
+  - 7
+  - 6
+  matrix_path: models/emotion_matrix.safetensors
+inference:
+  device: cpu
+  use_fp16: false
+  batch_size: 1
+  top_k: 50
+  top_p: 0.95
+  temperature: 1.0
+  repetition_penalty: 1.0
+  length_penalty: 1.0
+model_dir: models
