@@ -1,6 +1,49 @@
+---
+license: mit
+tags:
+  - text-to-speech
+  - tts
+  - voice-cloning
+  - zero-shot
+  - rust
+  - onnx
+language:
+  - en
+  - zh
+library_name: ort
+pipeline_tag: text-to-speech
+---
+
 # IndexTTS-Rust
 
 High-performance Text-to-Speech Engine in Pure Rust 🚀
+
+## ONNX Models (Download)
+
+Pre-converted models for inference - no Python required!
+
+| Model | Size | Download |
+|-------|------|----------|
+| **BigVGAN** (vocoder) | 433 MB | [bigvgan.onnx](https://huggingface.co/ThreadAbort/IndexTTS-Rust/resolve/models/models/bigvgan.onnx) |
+| **Speaker Encoder** | 28 MB | [speaker_encoder.onnx](https://huggingface.co/ThreadAbort/IndexTTS-Rust/resolve/models/models/speaker_encoder.onnx) |
+
+### Quick Download
+
+```python
+# Python with huggingface_hub
+from huggingface_hub import hf_hub_download
+
+bigvgan = hf_hub_download("ThreadAbort/IndexTTS-Rust", "models/bigvgan.onnx", revision="models")
+speaker = hf_hub_download("ThreadAbort/IndexTTS-Rust", "models/speaker_encoder.onnx", revision="models")
+```
+
+```bash
+# Or with wget
+wget https://huggingface.co/ThreadAbort/IndexTTS-Rust/resolve/models/models/bigvgan.onnx
+wget https://huggingface.co/ThreadAbort/IndexTTS-Rust/resolve/models/models/speaker_encoder.onnx
+```
+
+---
 
 A complete Rust rewrite of the IndexTTS system, designed for maximum performance and efficiency.
 
@@ -210,9 +253,28 @@ Performance on AMD Ryzen 9 5950X (16 cores):
 - [ ] Model quantization (INT8)
 - [ ] WebAssembly support
 
+## Marine Prosody Validation
+
+This project includes **Marine salience detection** - an O(1) algorithm that validates speech authenticity:
+
+```
+Human speech has NATURAL jitter - that's what makes it authentic!
+- Too perfect (jitter < 0.005) = robotic
+- Too chaotic (jitter > 0.3) = artifacts/damage
+- Sweet spot = real human voice
+```
+
+The Marines will KNOW if your TTS doesn't sound authentic! 🎖️
+
 ## License
 
 MIT License - See LICENSE file for details.
+
+---
+
+*From ashes to harmonics, from silence to song* 🔥🎵
+
+Built with love by Hue & Aye @ [8b.is](https://8b.is)
 
 ## Acknowledgments
 

@@ -15,7 +15,24 @@ build/
 .venv
 checkpoints/*
 __MACOSX
-
+.lock
+# Python build artifacts
+*.py[cod]
+*.egg-info/
+.venv
+build/
+dist/
+*.egg-info/     
 # Rust build artifacts
 /target/
 **/*.rs.bk
+.venv/
+.claude-flow/
+**/target/
+indexout/
+output.wav
+*.wav
+*.flac
+.swarm/
+.claude/
+clone_chris.py

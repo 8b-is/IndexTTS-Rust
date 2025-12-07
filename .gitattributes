@@ -51,3 +51,8 @@ indextts/utils/maskgct/models/codec/facodec/modules/JDC/bst.t7 filter=lfs diff=l
 examples/* filter=lfs diff=lfs merge=lfs -text
 *.wav filter=lfs diff=lfs merge=lfs -text
 *. filter=lfs diff=lfs merge=lfs -text
+.onnx filter=lfs diff=lfs merge=lfs -text
+.wav filter=lfs diff=lfs merge=lfs -text
+.mp3 filter=lfs diff=lfs merge=lfs -text
+.flac filter=lfs diff=lfs merge=lfs -text
+*.onnx.data filter=lfs diff=lfs merge=lfs -text
