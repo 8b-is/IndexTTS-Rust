@@ -8,7 +8,7 @@ mod session;
 
 pub use gpt::{GptModel, GptConfig};
 pub use embedding::{SpeakerEncoder, EmotionEncoder, SemanticEncoder};
-pub use session::{OnnxSession, ModelCache};
+pub use session::{OnnxSession, ModelCache, OrtStatus, check_ort_availability};
 
 
 /// Sampling strategy for generation

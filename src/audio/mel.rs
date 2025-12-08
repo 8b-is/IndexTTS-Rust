@@ -260,7 +260,7 @@ pub fn mel_spectrogram_normalized(
 pub fn mel_to_linear(mel_spec: &Array2<f32>, mel_fb: &MelFilterbank) -> Array2<f32> {
     // Pseudo-inverse of mel filterbank
     let filters_t = mel_fb.filters.t();
-    let gram = mel_fb.filters.dot(&filters_t);
+    let _gram = mel_fb.filters.dot(&filters_t);
 
     // Simple approximation using transpose
     filters_t.dot(mel_spec)

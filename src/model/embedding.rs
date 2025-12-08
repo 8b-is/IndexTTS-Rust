@@ -170,7 +170,7 @@ impl EmotionEncoder {
         let mut embedding = vec![0.0f32; embedding_dim];
 
         let mut offset = 0;
-        for (WIN_LENGTH, (&value, &dim_size)) in emotion_vector.iter().zip(self.dim_sizes.iter()).enumerate() {
+        for (_idx, (&value, &dim_size)) in emotion_vector.iter().zip(self.dim_sizes.iter()).enumerate() {
             // Interpolate between discrete emotion levels
             let continuous_idx = value * (dim_size - 1) as f32;
             let lower_idx = continuous_idx.floor() as usize;
@@ -211,7 +211,7 @@ impl EmotionEncoder {
             "angry" => vec![0.8, 0.9, 0.7, 0.5, 0.3, 0.5, 0.5, 0.5],
             "fearful" => vec![0.3, 0.4, 0.8, 0.5, 0.7, 0.5, 0.5, 0.5],
             "surprised" => vec![0.7, 0.8, 0.7, 0.5, 0.5, 0.5, 0.5, 0.5],
-            "neutral" | _ => self.neutral(),
+            _ => self.neutral(),
         }
     }
 

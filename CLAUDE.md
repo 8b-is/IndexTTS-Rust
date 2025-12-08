@@ -133,8 +133,24 @@ pub const HOP_LENGTH: usize = 256;   // STFT hop length
 - Python regression tests in `tests/` for end-to-end validation
 - Example audio files in `examples/` for testing voice cloning
 
-## Missing Infrastructure (TODO)
+## Infrastructure
 
-- No `scripts/manage.sh` yet (should include build, test, clean, docker controls)
-- No `context.md` yet for conversation continuity
-- No integration tests with actual ONNX models
+The project includes complete development infrastructure:
+
+- **`scripts/manage.sh`** - Colorful management script with build, test, clean, docker, and more
+  ```bash
+  ./scripts/manage.sh help          # See all commands
+  ./scripts/manage.sh build-full    # Full build workflow (build → clippy → build)
+  ./scripts/manage.sh test          # Run all tests
+  ./scripts/manage.sh lint          # Run Clippy
+  ./scripts/manage.sh docker-build  # Build Docker image
+  ./scripts/manage.sh               # Interactive menu
+  ```
+
+- **`context.md`** - Conversation continuity for Hue & Aye sessions
+
+- **`tests/`** - Integration tests for ONNX models and full pipeline
+  ```bash
+  cargo test --test integration_onnx      # ONNX model tests
+  cargo test --test integration_pipeline  # Pipeline tests
+  ```

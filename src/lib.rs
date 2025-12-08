@@ -22,6 +22,15 @@
 //! tts.synthesize("Hello world", "speaker.wav", &options).unwrap();
 //! ```
 
+// Allow dead code for utility functions intended for future use or library consumers
+#![allow(dead_code)]
+// Allow traditional for loops - often clearer for audio DSP code
+#![allow(clippy::needless_range_loop)]
+// Allow enumeration discards in iterator patterns
+#![allow(clippy::unused_enumerate_index)]
+// Allow wildcard patterns in matches for exhaustive handling
+#![allow(clippy::match_wildcard_for_single_variants)]
+
 pub mod audio;
 pub mod config;
 pub mod error;

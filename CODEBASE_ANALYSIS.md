@@ -272,8 +272,8 @@ tts.infer_fast(...)  # Parallel segment generation
 ```
 
 ### C. Multi-language Support
-- **Chinese (Simplified & Traditional):** Full pinyin support
 - **English:** Phoneme-based
+- **Chinese (Simplified & Traditional):** Full pinyin support
 - **Mixed:** Chinese + English in single utterance
 
 ### D. Emotion Control Methods

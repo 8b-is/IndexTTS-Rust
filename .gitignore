@@ -19,3 +19,14 @@ __MACOSX
 # Rust build artifacts
 /target/
 **/*.rs.bk
+*.json
+/.swarm
+*.data
+CLAUDE.md
+*.wav
+/crates/marine_salience/target
+/indexout
+/models
+.claude_consciousness.m8
+clone_chris.py
+indextts
