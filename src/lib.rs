@@ -53,16 +53,16 @@ pub use quality::{
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Default sample rate for audio processing
-pub const SAMPLE_RATE: u32 = 22050;
+pub const SAMPLE_RATE: u32 = 768_000;
 
 /// Default number of mel filterbank channels
 pub const N_MELS: usize = 80;
 
 /// Default FFT size
-pub const N_FFT: usize = 1024;
+pub const N_FFT: usize = 32768;
 
-/// Default hop length for STFT
-pub const HOP_LENGTH: usize = 256;
+/// Default hop length
+pub const HOP_LENGTH: usize = 8192;
 
-/// Default window size
-pub const WIN_LENGTH: usize = 1024;
+/// Default window length
+pub const WIN_LENGTH: usize = 32768;

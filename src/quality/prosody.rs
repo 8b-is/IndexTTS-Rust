@@ -184,7 +184,11 @@ impl MarineProsodyConditioner {
 
         // Detect peaks and collect jitter measurements
         let mut peaks: Vec<PeakInfo> = Vec::new();
-        let clip_threshold = 1e-3;
+        
+        // Architectural correction: Adaptive Gain Control (Cochlear AGC)
+        // Dynamically tracks the noise floor to adapt to environmental conditions
+        let mut ema_noise_floor = 0.0f32;
+        let agc_alpha = 0.001; // Slow adaptation rate
 
         // Simple peak detection
         for i in 1..samples.len().saturating_sub(1) {
@@ -192,7 +196,12 @@ impl MarineProsodyConditioner {
             let curr = samples[i].abs();
             let next = samples[i + 1].abs();
 
-            if curr > prev && curr > next && curr > clip_threshold {
+            // Update dynamic noise floor
+            ema_noise_floor = agc_alpha * curr + (1.0 - agc_alpha) * ema_noise_floor;
+            // The clip threshold is dynamically placed above the noise floor
+            let dynamic_clip = ema_noise_floor * 1.5; 
+
+            if curr > prev && curr > next && curr > dynamic_clip {
                 peaks.push(PeakInfo {
                     index: i,
                     amplitude: curr,

@@ -39,13 +39,13 @@ pub struct AudioConfig {
 impl Default for AudioConfig {
     fn default() -> Self {
         Self {
-            sample_rate: 22050,
-            n_fft: 1024,
-            hop_length: 256,
-            win_length: 1024,
+            sample_rate: 768_000,
+            n_fft: 32768,
+            hop_length: 8192,
+            win_length: 32768,
             n_mels: 80,
             fmin: 0.0,
-            fmax: 8000.0,
+            fmax: 384_000.0,
         }
     }
 }

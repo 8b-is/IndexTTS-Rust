@@ -34,10 +34,10 @@ pub struct BigVGANConfig {
 impl Default for BigVGANConfig {
     fn default() -> Self {
         Self {
-            sample_rate: 22050,
+            sample_rate: 768_000,
             num_mels: 80,
-            upsample_rates: vec![8, 8, 2, 2],
-            upsample_kernel_sizes: vec![16, 16, 4, 4],
+            upsample_rates: vec![16, 16, 8, 4],
+            upsample_kernel_sizes: vec![32, 32, 16, 8],
             resblock_kernel_sizes: vec![3, 7, 11],
             resblock_dilation_sizes: vec![vec![1, 3, 5], vec![1, 3, 5], vec![1, 3, 5]],
             upsample_initial_channel: 512,
@@ -248,14 +248,15 @@ mod tests {
     #[test]
     fn test_bigvgan_config() {
         let config = BigVGANConfig::default();
-        assert_eq!(config.total_upsample_factor(), 256);
-        assert_eq!(config.hop_length(), 256);
+        assert_eq!(config.total_upsample_factor(), 8192);
+        assert_eq!(config.hop_length(), 8192);
     }
 
     #[test]
     fn test_bigvgan_fallback() {
-        let vocoder = create_bigvgan_22k();
-        assert_eq!(vocoder.sample_rate(), 22050);
+        let config = BigVGANConfig::default();
+        let vocoder = BigVGAN::new_fallback(config);
+        assert_eq!(vocoder.sample_rate(), 768_000);
 
         // Create small test mel
         let mel = Array2::zeros((80, 10));

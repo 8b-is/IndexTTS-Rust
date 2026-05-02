@@ -433,11 +433,11 @@ fn test_library_constants() {
     println!("   WIN_LENGTH: {}", WIN_LENGTH);
 
     // Sanity checks
-    assert_eq!(SAMPLE_RATE, 22050, "Expected 22050 Hz sample rate");
+    assert_eq!(SAMPLE_RATE, 768_000, "Expected 768_000 Hz sample rate");
     assert_eq!(N_MELS, 80, "Expected 80 mel bands");
-    assert_eq!(N_FFT, 1024, "Expected 1024 FFT size");
-    assert_eq!(HOP_LENGTH, 256, "Expected 256 hop length");
-    assert_eq!(WIN_LENGTH, 1024, "Expected 1024 window length");
+    assert_eq!(N_FFT, 32768, "Expected 32768 FFT size");
+    assert_eq!(HOP_LENGTH, 8192, "Expected 8192 hop length");
+    assert_eq!(WIN_LENGTH, 32768, "Expected 32768 window length");
 
     // FFT size should be >= win length
     assert!(N_FFT >= WIN_LENGTH, "FFT size should be >= window length");
