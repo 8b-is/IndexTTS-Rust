@@ -292,7 +292,7 @@ impl IndexTTS {
         use crate::audio::{normalize_audio_peak, apply_fade};
 
         // Normalize to -1dB peak
-        let normalized = normalize_audio_peak(audio, 0.89);
+        let normalized = normalize_audio_peak(audio, -1.0);
 
         // Apply fade
         let fade_samples = (self.audio_config.sample_rate as f32 * 0.005) as usize; // 5ms

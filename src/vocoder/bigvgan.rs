@@ -121,20 +121,16 @@ impl BigVGAN {
             for i in 0..frame_size {
                 if start + i < output_length {
                     output[start + i] += frame[i] * window[i];
-                    window_sum[start + i] += window[i] * window[i];
+                    window_sum[start + i] += window[i]; // FIX: sum of windows, not squares
                 }
             }
         }
 
-        // Normalize by window sum
+        // Normalize by window sum (with a safe minimum to prevent edge explosion)
         for i in 0..output_length {
-            if window_sum[i] > 1e-8 {
-                output[i] /= window_sum[i];
-            }
+            let divisor = window_sum[i].max(0.1); // Prevent division by near-zero at edges
+            output[i] /= divisor;
         }
-
-        // Apply post-processing
-        let output = snake_activation_vec(&output, 0.3);
 
         Ok(output)
     }
