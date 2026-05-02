@@ -113,6 +113,21 @@ enum Commands {
         iterations: usize,
     },
 
+    /// 🌐 Start TTS TCP server (Hot Tub listener)
+    Serve {
+        /// Port to listen on
+        #[arg(short, long, default_value = "8420")]
+        port: u16,
+
+        /// Model directory
+        #[arg(short, long)]
+        model_dir: Option<PathBuf>,
+
+        /// Configuration file
+        #[arg(short, long)]
+        config: Option<PathBuf>,
+    },
+
     // Legacy alias for synthesize
     /// Synthesize speech (alias for clone)
     #[command(hide = true)]
@@ -178,6 +193,8 @@ fn main() -> Result<()> {
         Commands::Info => cmd_info(),
 
         Commands::Benchmark { iterations } => cmd_benchmark(iterations),
+
+        Commands::Serve { port, model_dir, config } => cmd_serve(port, model_dir, config),
 
         Commands::Synthesize {
             text,
@@ -754,4 +771,112 @@ fn benchmark_vocoder(iterations: usize) {
     println!("   Per iter: {:.3}ms", per_iter * 1000.0);
     println!("   RTF: {:.3}x", per_iter / audio_duration);
     println!();
+}
+
+// ============================================================================
+// Server Implementation
+// ============================================================================
+
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct SpeechMessage {
+    voice: String,
+    text: String,
+    priority: String,
+}
+
+#[tokio::main]
+async fn cmd_serve(port: u16, model_dir: Option<PathBuf>, config: Option<PathBuf>) -> Result<()> {
+    println!();
+    println!("🌐 IndexTTS Hot Tub Server");
+    println!("========================");
+    println!();
+
+    // Determine model directory
+    let model_dir = model_dir.unwrap_or_else(|| {
+        if PathBuf::from("checkpoints").exists() {
+            PathBuf::from("checkpoints")
+        } else {
+            PathBuf::from("models")
+        }
+    });
+
+    // Load or create config
+    let cfg = if let Some(config_path) = config {
+        Config::load(config_path)?
+    } else {
+        let checkpoint_config = model_dir.join("config.yaml");
+        if checkpoint_config.exists() {
+            println!("📋 Loading config from: {}", checkpoint_config.display());
+            let mut cfg = Config::load(&checkpoint_config).unwrap_or_default();
+            cfg.model_dir = model_dir.clone();
+            cfg
+        } else {
+            Config {
+                model_dir: model_dir.clone(),
+                ..Default::default()
+            }
+        }
+    };
+
+    println!("🚀 Initializing IndexTTS Engine...");
+    let tts = std::sync::Arc::new(IndexTTS::new(cfg)?);
+
+    let addr = format!("127.0.0.1:{}", port);
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
+    println!("✅ Listening on TCP {}", addr);
+    println!();
+
+    loop {
+        let (mut socket, peer) = listener.accept().await?;
+        println!("📡 Accepted connection from {}", peer);
+        
+        let tts_clone = std::sync::Arc::clone(&tts);
+        
+        tokio::spawn(async move {
+            use tokio::io::AsyncReadExt;
+            let mut buf = vec![0; 4096];
+            loop {
+                match socket.read(&mut buf).await {
+                    Ok(0) => break,
+                    Ok(n) => {
+                        let json_str = String::from_utf8_lossy(&buf[..n]);
+                        for line in json_str.lines() {
+                            if line.trim().is_empty() { continue; }
+                            match serde_json::from_str::<SpeechMessage>(line) {
+                                Ok(msg) => {
+                                    println!("🗣️  Request [{}]: \"{}\"", msg.voice, msg.text);
+                                    let options = SynthesisOptions::default();
+                                    // Use a dummy speaker audio path or mapping. We will use a fallback or demo if not found.
+                                    // In a real implementation we would look up the voice reference audio.
+                                    let voice_path = format!("examples/{}.wav", msg.voice.to_lowercase());
+                                    let safe_voice_path = if PathBuf::from(&voice_path).exists() {
+                                        voice_path
+                                    } else {
+                                        "examples/default.wav".to_string()
+                                    };
+                                    
+                                    // Make sure examples/default.wav exists or ignore the error if it's missing for demo mode
+                                    if let Err(e) = tts_clone.synthesize(&msg.text, &safe_voice_path, &options) {
+                                        println!("⚠️  Synthesis error: {}", e);
+                                    } else {
+                                        println!("✅ Synthesized successfully");
+                                    }
+                                }
+                                Err(e) => {
+                                    println!("❌ JSON parsing error: {}", e);
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        println!("❌ Socket read error: {}", e);
+                        break;
+                    }
+                }
+            }
+            println!("🔌 Disconnected {}", peer);
+        });
+    }
 }

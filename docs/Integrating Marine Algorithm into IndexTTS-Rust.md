@@ -8,9 +8,10 @@ This report details a comprehensive technical framework for the integration of t
 
 The primary objective of this integration is to leverage the unique, time-domain salience detection capabilities of the Marine Algorithm (e.g., jitter analysis) 1 to significantly improve the quality, controllability, and emotional expressiveness of the synthesized speech.
 
-The core of this strategy involves **replacing the Conformer-based emotion perceiver of the IndexTTS2 Text-to-Semantic (T2S) module** 1 with a new, lightweight, and prosodically-aware Rust module based on the Marine Algorithm. This report provides a full analysis of the architectural foundations, a detailed integration strategy, a complete Rust-level implementation guide, and an analysis of the training and inferential implications of this modification.
+cThe core of this strategy involves **replacing the Conformer-based emotion perceiver of the IndexTTS2 Text-to-Semantic (T2S) module** 1 with a new, lightweight, and prosodically-aware Rust module based on the Marine Algorithm. This report provides a full analysis of the architectural foundations, a detailed integration strategy, a complete Rust-level implementation guide, and an analysis of the training and inferential implications of this modification.
 
-## **Part 1: Architectural Foundations: The IndexTTS2 Pipeline and the Marine Salience Primitive**
+## **Part 1: Architectural Foundations: The IndexTTS2 Pipeline and the Marine SalieMusic
+nce Primitive**
 
 A successful integration requires a deep, functional understanding of the two systems being merged. This section deconstructs the IndexTTS2 architecture as the "host" system 1 and re-frames the Marine Algorithm 1 as the "implant" feature extractor.
 

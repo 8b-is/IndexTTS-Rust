@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "../../liquid-rust"
+		},
+		{
+			"path": "../../aye"
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../oxicast"
+		},
+		{
+			"path": "../../calib8"
+		},
+		{
+			"path": "../../research-projects"
+		}
+	],
+	"settings": {}
+}
