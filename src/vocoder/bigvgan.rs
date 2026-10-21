@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::model::OnnxSession;
-use super::{Vocoder, snake_activation_vec};
+use super::Vocoder;
 
 /// BigVGAN configuration
 #[derive(Debug, Clone)]
@@ -175,6 +175,95 @@ impl BigVGAN {
         frame
     }
 
+    /// Generate a single frame using **p/q Z_{2^32} Phase-Ring + BFP-i8 Mel Amplitudes**.
+    ///
+    /// Replaces `80 * frame_size` transcendental `f32::sin()` calls per frame with:
+    /// 1. BFP-i8 quantization (`m_b in [0, 127]` + shared block exponent) of the 80 mel band amplitudes,
+    /// 2. `Z_{2^32}` wrapping phase accumulators indexing a 4096-entry p/q sine table (`q = 65536`),
+    /// 3. Exact `i32` inner-loop accumulation across all active mel bands, converting to `f32` once per sample.
+    pub fn generate_frame_pq(&self, mel: &[f32], frame_size: usize) -> Vec<f32> {
+        use std::sync::OnceLock;
+        static SIN_LUT: OnceLock<[i16; 4096]> = OnceLock::new();
+        let lut = SIN_LUT.get_or_init(|| {
+            let mut t = [0i16; 4096];
+            for (i, slot) in t.iter_mut().enumerate() {
+                let angle = (i as f64) * 2.0 * std::f64::consts::PI / 4096.0;
+                *slot = (angle.sin() * 16_384.0).round() as i16; // q_sin = 2^14 = 16384
+            }
+            t
+        });
+
+        // Compute overall energy and BFP-i8 mel band magnitudes
+        let n_mels = mel.len().max(1);
+        let mut amps = Vec::with_capacity(n_mels);
+        let mut max_amp = 0.0f32;
+        let mut energy_sum = 0.0f32;
+        for &m in mel {
+            let e = m.exp();
+            energy_sum += e;
+            let a = e.min(1.0) * 0.1;
+            if a > max_amp {
+                max_amp = a;
+            }
+            amps.push(a);
+        }
+        let energy = (energy_sum / (n_mels as f32)).sqrt().min(2.0);
+
+        // Quantize mel band amplitudes into i8 mantissas [0..127] with shared scale
+        let amp_scale = if max_amp > 1e-12 { max_amp / 127.0 } else { 0.0 };
+        let inv_amp_scale = if max_amp > 1e-12 { 127.0 / max_amp } else { 0.0 };
+
+        // Precompute Z_{2^32} phase steps `dphi_b` for each mel band
+        // Since freq_b = (b / n_mels) * (fs / 2), freq_b / fs = b / (2 * n_mels),
+        // so dphi_b = b * (2^31 / n_mels)!
+        let base_dphi = ((1u64 << 31) / (n_mels as u64)) as u32;
+
+        let mut frame_acc = vec![0i32; frame_size];
+        for (freq_idx, &a) in amps.iter().enumerate() {
+            let m_i8 = (a * inv_amp_scale).round() as i32;
+            if m_i8 == 0 {
+                continue;
+            }
+            let dphi = base_dphi.wrapping_mul(freq_idx as u32);
+            let mut phi = 0u32;
+            for acc in frame_acc.iter_mut() {
+                let s = lut[(phi >> 20) as usize] as i32;
+                phi = phi.wrapping_add(dphi);
+                // m_i8 in [0, 127], s in [-16384, 16384] -> product <= 2.08M, 80 bands <= 166M (fits in i32!)
+                *acc += m_i8 * s;
+            }
+        }
+
+        // Single boundary conversion from integer accumulator to f32 + deterministic LCG noise
+        let combined_scale = amp_scale / 16_384.0;
+        let noise_scale = energy * 0.01 / 32_768.0;
+        let mut prng = 0x9E37_79B9_7F4A_7C15u64;
+        let mut frame = Vec::with_capacity(frame_size);
+        let mut max_abs = 0.0f32;
+
+        for &acc in &frame_acc {
+            prng = prng
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
+            let noise_i16 = ((prng >> 48) as i32) - 32_768;
+            let val = (acc as f32) * combined_scale + (noise_i16 as f32) * noise_scale;
+            let abs_v = val.abs();
+            if abs_v > max_abs {
+                max_abs = abs_v;
+            }
+            frame.push(val);
+        }
+
+        if max_abs > 1.0 {
+            let inv_max = 1.0 / max_abs;
+            for v in frame.iter_mut() {
+                *v *= inv_max;
+            }
+        }
+
+        frame
+    }
+
     /// Apply post-processing to output
     pub fn post_process(&self, audio: &[f32]) -> Vec<f32> {
         use crate::audio::{normalize_audio, apply_fade};
@@ -283,5 +372,44 @@ mod tests {
         assert_eq!(processed.len(), audio.len());
         // Check fade was applied (first samples should be smaller)
         assert!(processed[0].abs() < 0.1);
+    }
+
+    #[test]
+    fn test_bigvgan_generate_frame_pq_benchmark() {
+        use std::time::Instant;
+
+        let vocoder = create_bigvgan_24k();
+        let mel: Vec<f32> = (0..80)
+            .map(|b| -2.0 + ((b * 17) % 25) as f32 * 0.12)
+            .collect();
+        let frame_size = 2048; // 80 mel bands x 2048 samples = 163,840 harmonic evaluations/frame
+        let iters = 25;
+
+        // Warmup
+        let f_ref = vocoder.generate_frame(&mel, frame_size);
+        let f_pq = vocoder.generate_frame_pq(&mel, frame_size);
+        assert_eq!(f_ref.len(), frame_size);
+        assert_eq!(f_pq.len(), frame_size);
+
+        let t0 = Instant::now();
+        for _ in 0..iters {
+            std::hint::black_box(vocoder.generate_frame(std::hint::black_box(&mel), frame_size));
+        }
+        let float_us = t0.elapsed().as_secs_f64() * 1e6 / (iters as f64);
+
+        let t1 = Instant::now();
+        for _ in 0..iters {
+            std::hint::black_box(vocoder.generate_frame_pq(std::hint::black_box(&mel), frame_size));
+        }
+        let pq_us = t1.elapsed().as_secs_f64() * 1e6 / (iters as f64);
+
+        println!("\n=== BIGVGAN FRAME SYNTHESIS BENCHMARK (80 Mels x 2048 Samples) ===");
+        println!("  Float32 Transcendental (163,840 sin/frame): {:>9.2} us", float_us);
+        println!(
+            "  p/q Z_{{2^32}} Phase-Ring + BFP-i8 Mels:    {:>9.2} us ({:.2}x speedup)",
+            pq_us,
+            float_us / pq_us
+        );
+        assert!(pq_us < float_us);
     }
 }
