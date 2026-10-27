@@ -15,3 +15,16 @@ pub fn alexiai_st_indextts_rust_fold(seed: u64) -> i64 {
     let trit: i64 = (rem == 1) as i64 - (rem == 2) as i64;
     ((shifted >> 3) as i64).wrapping_add(trit * 432)
 }
+
+pub fn steward_indextts_rust_geodesic_seat_ema(seed: i64) -> i64 {
+    let shifted = seed.wrapping_mul(684) ^ 528;
+    let rem = shifted.rem_euclid(3);
+    let trit: i64 = (rem == 1) as i64 - (rem == 2) as i64;
+    shifted.wrapping_add(trit * 432)
+}
+#[test]
+fn test_steward_indextts_rust_geodesic_seat_ema_unital_boundary() {
+    let y0 = steward_indextts_rust_geodesic_seat_ema(0);
+    let y432 = steward_indextts_rust_geodesic_seat_ema(432);
+    assert_ne!(y0, y432);
+}
