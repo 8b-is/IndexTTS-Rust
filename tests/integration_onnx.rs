@@ -418,31 +418,19 @@ fn test_marine_prosody_extraction() {
     // Create conditioner and extract prosody
     let conditioner = MarineProsodyConditioner::new(SAMPLE_RATE);
 
-    match conditioner.from_samples(&samples) {
-        Ok(prosody) => {
-            println!("✅ Extracted MarineProsodyVector:");
-            println!("   jp_mean (pitch jitter): {:.4}", prosody.jp_mean);
-            println!("   jp_std: {:.4}", prosody.jp_std);
-            println!("   ja_mean (amplitude jitter): {:.4}", prosody.ja_mean);
-            println!("   ja_std: {:.4}", prosody.ja_std);
-            println!("   h_mean (harmonic): {:.4}", prosody.h_mean);
-            println!("   s_mean (salience): {:.4}", prosody.s_mean);
-            println!("   peak_density: {:.2}", prosody.peak_density);
-            println!("   energy_mean: {:.4}", prosody.energy_mean);
-        }
-        Err(e) => {
-            println!("❌ Prosody extraction failed: {}", e);
-        }
-    }
+    let prosody = conditioner.extract(&samples);
+    assert!(prosody.to_array().iter().all(|value| value.is_finite()));
+    assert_ne!(prosody, indextts::MarineProsodyVector::zeros());
+
 }
 
-/// Test: TTS quality report validation
+/// Test: Current Marine descriptors are deterministic; no quality-report API exists.
 #[test]
-fn test_quality_report() {
+fn test_marine_descriptor_determinism() {
     use indextts::quality::MarineProsodyConditioner;
     use indextts::SAMPLE_RATE;
 
-    println!("📋 Testing TTS quality validation:");
+    println!("📋 Testing Marine descriptor determinism:");
 
     // Generate test audio
     let num_samples = SAMPLE_RATE as usize;
@@ -461,25 +449,11 @@ fn test_quality_report() {
 
     let conditioner = MarineProsodyConditioner::new(SAMPLE_RATE);
 
-    match conditioner.validate_tts_output(&samples) {
-        Ok(report) => {
-            println!("✅ Quality Report generated:");
-            println!("   Overall Score: {:.1}%", report.quality_score);
-            println!("   Passes (70% threshold): {}", report.passes(70.0));
+    let prosody = conditioner.extract(&samples);
+    assert_eq!(prosody, conditioner.extract(&samples));
+    assert!(prosody.to_array().iter().all(|value| value.is_finite()));
+    assert_eq!(conditioner.extract(&[]), indextts::MarineProsodyVector::zeros());
 
-            if report.issues.is_empty() {
-                println!("   No issues detected! 🎉");
-            } else {
-                println!("   Issues found:");
-                for issue in &report.issues {
-                    println!("   ⚠️  {}", issue);
-                }
-            }
-        }
-        Err(e) => {
-            println!("❌ Quality validation failed: {}", e);
-        }
-    }
 }
 
 // ============================================================================
