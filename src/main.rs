@@ -333,20 +333,11 @@ fn cmd_clone(
     println!("🎧 Output saved to: {}", output.display());
     println!();
 
-    // Run Marine analysis on output
-    println!("🌊 Running Marine quality analysis...");
+    // The current conditioner exposes descriptors, not a quality verdict.
+    println!("🌊 Running Marine prosody analysis...");
     if let Ok(audio) = load_audio(output.to_str().unwrap(), Some(SAMPLE_RATE)) {
         let conditioner = MarineProsodyConditioner::new(SAMPLE_RATE);
-        if let Ok(report) = conditioner.validate_tts_output(&audio.samples) {
-            println!("   Quality Score: {:.1}%", report.quality_score);
-            if report.issues.is_empty() {
-                println!("   Status: ✅ No issues detected");
-            } else {
-                for issue in &report.issues {
-                    println!("   ⚠️  {}", issue);
-                }
-            }
-        }
+        print_prosody(&conditioner.extract(&audio.samples));
     }
 
     Ok(())
@@ -563,58 +554,29 @@ fn cmd_analyze(audio: PathBuf) -> Result<()> {
     // Extract prosody
     let conditioner = MarineProsodyConditioner::new(SAMPLE_RATE);
 
-    match conditioner.from_samples(&audio_data.samples) {
-        Ok(prosody) => {
-            println!("Marine Prosody Vector (8D):");
-            println!("   jp_mean (pitch jitter):    {:.4}", prosody.jp_mean);
-            println!("   jp_std (pitch variance):   {:.4}", prosody.jp_std);
-            println!("   ja_mean (amp jitter):      {:.4}", prosody.ja_mean);
-            println!("   ja_std (amp variance):     {:.4}", prosody.ja_std);
-            println!("   h_mean (harmonic):         {:.4}", prosody.h_mean);
-            println!("   s_mean (salience):         {:.4}", prosody.s_mean);
-            println!("   peak_density:              {:.2}", prosody.peak_density);
-            println!("   energy_mean:               {:.4}", prosody.energy_mean);
-            println!();
-
-            // Interpret
-            println!("Interpretation:");
-
-            // Estimate emotional state
-            let valence = prosody.estimate_valence();
-            let arousal = prosody.estimate_arousal();
-
-            if valence > 0.3 {
-                println!("   😊 Positive valence (confident, happy)");
-            } else if valence < -0.3 {
-                println!("   🤔 Negative valence (processing, thoughtful)");
-            } else {
-                println!("   😐 Neutral valence");
-            }
-
-            if arousal > 0.6 {
-                println!("   ⚡ High arousal (energetic, expressive)");
-            } else if arousal < 0.4 {
-                println!("   😌 Low arousal (calm, relaxed)");
-            } else {
-                println!("   📊 Moderate arousal");
-            }
-
-            // Quality assessment
-            if prosody.jp_mean < 0.005 {
-                println!("   ⚠️  Very low jitter - may sound robotic");
-            } else if prosody.jp_mean > 0.3 {
-                println!("   ⚠️  High jitter - may indicate artifacts");
-            } else {
-                println!("   ✅ Natural jitter range");
-            }
-        }
-        Err(e) => {
-            println!("❌ Analysis failed: {}", e);
-        }
-    }
+    print_prosody(&conditioner.extract(&audio_data.samples));
 
     println!();
     Ok(())
+}
+
+/// Display the descriptors available from the current Marine API.
+/// These values are not calibrated quality or emotional-state predictions.
+fn print_prosody(prosody: &indextts::MarineProsodyVector) {
+    println!("Marine Prosody Vector (8D):");
+    for (label, value) in [
+        ("jp_mean (pitch jitter)", prosody.jp_mean),
+        ("jp_std (pitch variance)", prosody.jp_std),
+        ("ja_mean (amp jitter)", prosody.ja_mean),
+        ("ja_std (amp variance)", prosody.ja_std),
+        ("h_mean (harmonic)", prosody.h_mean),
+        ("s_mean (salience)", prosody.s_mean),
+        ("peak_density", prosody.peak_density),
+        ("energy_mean", prosody.energy_mean),
+    ] {
+        println!("   {label}: {value}");
+    }
+    println!("   Quality and emotion estimates are unavailable in this conditioner.");
 }
 
 /// Generate default config

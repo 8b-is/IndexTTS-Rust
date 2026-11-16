@@ -199,13 +199,10 @@ fn test_comfort_level_classification() {
             })
             .collect();
 
-        match conditioner.from_samples(&samples) {
-            Ok(prosody) => {
-                let comfort = classify_comfort(&prosody);
-                println!("✅ {:?} (jp: {:.4})", comfort, prosody.jp_mean);
-            }
-            Err(e) => println!("❌ {}", e),
-        }
+        let prosody = conditioner.extract(&samples);
+        assert!(prosody.to_array().iter().all(|value| value.is_finite()));
+        let comfort = classify_comfort(&prosody);
+        println!("✅ {:?} (jp: {:.4})", comfort, prosody.jp_mean);
     }
 
     // Test case 2: Noisy signal (might be Uneasy)
@@ -220,13 +217,10 @@ fn test_comfort_level_classification() {
             })
             .collect();
 
-        match conditioner.from_samples(&samples) {
-            Ok(prosody) => {
-                let comfort = classify_comfort(&prosody);
-                println!("✅ {:?} (jp: {:.4})", comfort, prosody.jp_mean);
-            }
-            Err(e) => println!("❌ {}", e),
-        }
+        let prosody = conditioner.extract(&samples);
+        assert!(prosody.to_array().iter().all(|value| value.is_finite()));
+        let comfort = classify_comfort(&prosody);
+        println!("✅ {:?} (jp: {:.4})", comfort, prosody.jp_mean);
     }
 
     // Test case 3: High energy, low jitter (should be Happy)
@@ -239,13 +233,10 @@ fn test_comfort_level_classification() {
             })
             .collect();
 
-        match conditioner.from_samples(&samples) {
-            Ok(prosody) => {
-                let comfort = classify_comfort(&prosody);
-                println!("✅ {:?} (energy: {:.4})", comfort, prosody.energy_mean);
-            }
-            Err(e) => println!("❌ {}", e),
-        }
+        let prosody = conditioner.extract(&samples);
+        assert!(prosody.to_array().iter().all(|value| value.is_finite()));
+        let comfort = classify_comfort(&prosody);
+        println!("✅ {:?} (energy: {:.4})", comfort, prosody.energy_mean);
     }
 }
 
